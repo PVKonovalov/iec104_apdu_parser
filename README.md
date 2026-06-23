@@ -123,4 +123,4 @@ U-frame  CF1 bits1:0=11
 ## License
 
 Copyright 2026 Pavel Konovalov. Licensed under the GNU General Public License v3.
-See [COPYING](COPYING) for the full license text.
+See [LICENSE](LICENSE) for the full license text.
