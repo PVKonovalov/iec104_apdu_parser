@@ -1,12 +1,14 @@
 # iec104_apdu_parser
 
-A command-line dialog tool for parsing and validating IEC 60870-5-104 APDUs from hex input.
+Yes, IEC 60870 is certainly not IEC 61850 — no SCL files, no GOOSE, no MMS, none of that modern elegance. And yet, here we are: IEC 60870-5-104 quietly powers a huge share of the world's SCADA infrastructure and shows no sign of retirement. Substations commissioned decades ago speak this protocol, RTUs speak this protocol, and legacy master stations that nobody dares to replace speak this protocol. Dismissing it as "old" does not make it go away.
+
+`iec104_apdu_parser` is a command-line dialog tool for decoding and validating IEC 60870-5-104 APDUs from raw hex input. Feed it a hex string captured from a network trace, a serial tap, or an MQTT broker, and it will walk you through every field: frame type, sequence numbers, ASDU header, and each information object with its address, value, and quality descriptor. Structural errors — wrong start byte, length mismatch, malformed control fields — are flagged explicitly, making it useful both for protocol learning and for diagnosing misbehaving devices in the field.
 
 ## Features
 
 - Decodes all three IEC 104 frame types: **I-frame** (Information), **S-frame** (Supervisory), **U-frame** (Unnumbered)
 - Fully decodes the ASDU payload of I-frames: type ID, VSQ, COT, OA, CA, and all information objects
-- Supports 30+ standard type IDs including measured values, single/double-point, commands, clock synchronisation, and interrogation
+- Supports 30+ standard type IDs including measured values, single/double-point, commands, clock synchronization, and interrogation
 - Reports structural errors: wrong start byte, length mismatch, malformed control fields, unknown type IDs
 - Configurable application-layer parameters via command-line flags
 - Accepts hex input with spaces, colons, or dashes as separators
@@ -48,7 +50,6 @@ cmake --build build
 | `--sizeOfCA` | `2` | Size of Common Address field in bytes (1 or 2) |
 | `--sizeOfIOA` | `3` | Size of Information Object Address field in bytes (1, 2, or 3) |
 | `--maxSizeOfASDU` | `249` | Maximum ASDU size in bytes |
-| `--unsignedSVA` | | Display SVA (scaled value) fields as unsigned uint16 instead of signed int16 |
 | `--help` | | Print usage and exit |
 
 Once started the tool enters an interactive loop. Enter a hex string and press Enter to parse it. An empty line exits.

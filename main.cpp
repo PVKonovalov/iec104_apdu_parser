@@ -36,13 +36,13 @@ extern "C" {
 
 // ── helpers ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-static std::string hex2(uint8_t b) {
+static std::string hex2(const uint8_t b) {
     std::ostringstream os;
     os << "0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
     return os.str();
 }
 
-static std::string hexBytes(const uint8_t *buf, int len) {
+static std::string hexBytes(const uint8_t *buf, const int len) {
     std::ostringstream os;
     for (int i = 0; i < len; ++i) {
         if (i) os << ' ';
@@ -85,7 +85,7 @@ static std::vector<uint8_t> parseHexString(const std::string &input, std::vector
 
 // ── quality descriptor printer ────────────────────────────────────────────────────────────────────────────────────────
 
-static std::string qualityStr(QualityDescriptor qd) {
+static std::string qualityStr(const QualityDescriptor qd) {
     if (qd == IEC60870_QUALITY_GOOD) return "GOOD";
     std::string s;
     if (qd & IEC60870_QUALITY_OVERFLOW) s += "OV|";
@@ -99,7 +99,7 @@ static std::string qualityStr(QualityDescriptor qd) {
 
 // ── CP56Time2a printer ────────────────────────────────────────────────────────────────────────────────────────────────
 
-static std::string cp56Str(CP56Time2a t) {
+static std::string cp56Str(const CP56Time2a t) {
     char buf[64];
     std::snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d.%03d%s",
                   2000 + CP56Time2a_getYear(t), CP56Time2a_getMonth(t), CP56Time2a_getDayOfMonth(t),
@@ -110,7 +110,7 @@ static std::string cp56Str(CP56Time2a t) {
 
 // ── information object printer ────────────────────────────────────────────────────────────────────────────────────────
 
-static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsignedSVA) {
+static void printInfoObject(const InformationObject io, const TypeID tid, const int idx) {
     if (!io) return;
     std::cout << "    [" << idx << "] IOA=" << InformationObject_getObjectAddress(io) << "\n";
 
@@ -195,7 +195,8 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
         case M_ME_NB_1: {
             auto *mv = reinterpret_cast<MeasuredValueScaled>(io);
             int sva_nb1 = MeasuredValueScaled_getValue(mv);
-            std::cout << "        SVA   = " << (unsignedSVA ? static_cast<int>(static_cast<uint16_t>(sva_nb1)) : sva_nb1) << "\n";
+            std::cout << "        SVA   = " << sva_nb1 << " (0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(sva_nb1) << std::dec <<
+                    ")\n";
             std::cout << "        QDS   = " << qualityStr(MeasuredValueScaled_getQuality(mv)) << "\n";
             break;
         }
@@ -203,7 +204,8 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
             auto *mv = reinterpret_cast<MeasuredValueScaled>(io);
             auto *mvt = reinterpret_cast<MeasuredValueScaledWithCP56Time2a>(io);
             int sva_te1 = MeasuredValueScaled_getValue(mv);
-            std::cout << "        SVA   = " << (unsignedSVA ? static_cast<int>(static_cast<uint16_t>(sva_te1)) : sva_te1) << "\n";
+            std::cout << "        SVA   = " << sva_te1 << " (0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(sva_te1) << std::dec <<
+                    ")\n";
             std::cout << "        QDS   = " << qualityStr(MeasuredValueScaled_getQuality(mv)) << "\n";
             std::cout << "        Time  = " << cp56Str(MeasuredValueScaledWithCP56Time2a_getTimestamp(mvt)) << "\n";
             break;
@@ -326,21 +328,22 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
         case C_SE_NA_1: {
             auto *se = reinterpret_cast<SetpointCommandNormalized>(io);
             std::cout << "        NVA   = " << SetpointCommandNormalized_getValue(se) << "\n";
-            std::cout << "        QL    = " << static_cast<int>(SetpointCommandNormalized_getQL(se)) << (SetpointCommandNormalized_isSelect(se) ? " [SELECT]" : " [EXECUTE]") <<
+            std::cout << "        QL    = " << SetpointCommandNormalized_getQL(se) << (SetpointCommandNormalized_isSelect(se) ? " [SELECT]" : " [EXECUTE]") <<
                     "\n";
             break;
         }
         case C_SE_NB_1: {
             auto *se = reinterpret_cast<SetpointCommandScaled>(io);
             int sva_se = SetpointCommandScaled_getValue(se);
-            std::cout << "        SVA   = " << (unsignedSVA ? static_cast<int>(static_cast<uint16_t>(sva_se)) : sva_se) << "\n";
-            std::cout << "        QL    = " << static_cast<int>(SetpointCommandScaled_getQL(se)) << (SetpointCommandScaled_isSelect(se) ? " [SELECT]" : " [EXECUTE]") << "\n";
+            std::cout << "        SVA   = " << sva_se << " (0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(sva_se) << std::dec <<
+                    ")\n";
+            std::cout << "        QL    = " << SetpointCommandScaled_getQL(se) << (SetpointCommandScaled_isSelect(se) ? " [SELECT]" : " [EXECUTE]") << "\n";
             break;
         }
         case C_SE_NC_1: {
             auto *se = reinterpret_cast<SetpointCommandShort>(io);
             std::cout << "        Value = " << SetpointCommandShort_getValue(se) << "\n";
-            std::cout << "        QL    = " << static_cast<int>(SetpointCommandShort_getQL(se)) << (SetpointCommandShort_isSelect(se) ? " [SELECT]" : " [EXECUTE]") << "\n";
+            std::cout << "        QL    = " << SetpointCommandShort_getQL(se) << (SetpointCommandShort_isSelect(se) ? " [SELECT]" : " [EXECUTE]") << "\n";
             break;
         }
 
@@ -353,7 +356,8 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
         case P_ME_NB_1: {
             auto *pm = reinterpret_cast<ParameterScaledValue>(io);
             int sva_pm = ParameterScaledValue_getValue(pm);
-            std::cout << "        SVA   = " << (unsignedSVA ? static_cast<int>(static_cast<uint16_t>(sva_pm)) : sva_pm) << "\n";
+            std::cout << "        SVA   = " << sva_pm << " (0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << static_cast<uint16_t>(sva_pm) << std::dec <<
+                    ")\n";
             std::cout << "        QPM   = " << static_cast<int>(ParameterScaledValue_getQPM(pm)) << "\n";
             break;
         }
@@ -370,7 +374,7 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
         }
 
         default:
-            std::cout << "        (detailed decoding not available for type " << static_cast<int>(tid) << ")\n";
+            std::cout << "        (detailed decoding not available for type " << tid << ")\n";
             break;
     }
 
@@ -379,14 +383,13 @@ static void printInfoObject(InformationObject io, TypeID tid, int idx, bool unsi
 
 // ── ASDU printer ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
-static void printASdu(const uint8_t *asduBuf, int asduLen, const sCS101_AppLayerParameters &params, std::vector<std::string> &errors, bool unsignedSVA) {
+static void printASdu(const uint8_t *asduBuf, const int asduLen, const sCS101_AppLayerParameters &params, std::vector<std::string> &errors) {
     if (asduLen < 1) {
         errors.emplace_back("ASDU too short (0 bytes)");
         return;
     }
 
-    int minHeaderLen = params.sizeOfTypeId + params.sizeOfVSQ + params.sizeOfCOT + params.sizeOfCA;
-    if (asduLen < minHeaderLen) {
+    if (int minHeaderLen = params.sizeOfTypeId + params.sizeOfVSQ + params.sizeOfCOT + params.sizeOfCA; asduLen < minHeaderLen) {
         errors.emplace_back("ASDU too short for header");
         return;
     }
@@ -405,7 +408,7 @@ static void printASdu(const uint8_t *asduBuf, int asduLen, const sCS101_AppLayer
     auto cot = static_cast<CS101_CauseOfTransmission>(cotVal);
 
     std::cout << "  ┌─ ASDU ─────────────────────────────────────────\n";
-    std::cout << "  │  Type ID : " << static_cast<int>(typeId) << " (" << TypeID_toString(typeId) << ")\n";
+    std::cout << "  │  Type ID : " << typeId << " (" << TypeID_toString(typeId) << ")\n";
     std::cout << "  │  VSQ     : numObj=" << numObj << "  SQ=" << (isSeq ? "1 (sequence)" : "0") << "\n";
     std::cout << "  │  COT     : " << cotVal << " (" << CS101_CauseOfTransmission_toString(cot) << ")" << (isTest ? "  T=1" : "") << (isNeg ? "  P/N=1" : "") << "\n";
     if (params.sizeOfCOT == 2) std::cout << "  │  OA      : " << oa << "\n";
@@ -431,7 +434,7 @@ static void printASdu(const uint8_t *asduBuf, int asduLen, const sCS101_AppLayer
     }
 
     for (int i = 0; i < actualCount; ++i)
-        printInfoObject(CS101_ASDU_getElement(asdu, i), typeId, i, unsignedSVA);
+        printInfoObject(CS101_ASDU_getElement(asdu, i), typeId, i);
 
     CS101_ASDU_destroy(asdu);
     std::cout << "  └─────────────────────────────────────────────────\n";
@@ -439,7 +442,7 @@ static void printASdu(const uint8_t *asduBuf, int asduLen, const sCS101_AppLayer
 
 // ── U-frame function name ─────────────────────────────────────────────────────────────────────────────────────────────
 
-static const char *uFrameName(uint8_t cf1) {
+static const char *uFrameName(const uint8_t cf1) {
     switch (cf1) {
         case 0x07: return "STARTDT act";
         case 0x0B: return "STARTDT con";
@@ -453,7 +456,7 @@ static const char *uFrameName(uint8_t cf1) {
 
 // ── Main APDU parser ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-static void parseAPDU(const std::vector<uint8_t> &bytes, const sCS101_AppLayerParameters &params, std::vector<std::string> &errors, bool unsignedSVA) {
+static void parseAPDU(const std::vector<uint8_t> &bytes, const sCS101_AppLayerParameters &params, std::vector<std::string> &errors) {
     const int totalLen = static_cast<int>(bytes.size());
 
     std::cout << "Raw bytes (" << totalLen << "): " << hexBytes(bytes.data(), totalLen) << "\n\n";
@@ -499,7 +502,7 @@ static void parseAPDU(const std::vector<uint8_t> &bytes, const sCS101_AppLayerPa
             return;
         }
         std::cout << "\n";
-        printASdu(bytes.data() + 6, asduLen, params, errors, unsignedSVA);
+        printASdu(bytes.data() + 6, asduLen, params, errors);
     } else if ((cf1 & 0x03) == 0x01) {
         int nr = ((cf3 >> 1) & 0x7F) | (cf4 << 7);
         std::cout << "\nFrame type : S-frame (Supervisory)\n";
@@ -524,7 +527,7 @@ static void parseAPDU(const std::vector<uint8_t> &bytes, const sCS101_AppLayerPa
 
 // ── Dialog loop ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
-int main(int argc, char *argv[]) {
+int main(const int argc, char *argv[]) {
     sCS101_AppLayerParameters params{};
     params.sizeOfTypeId = 1;
     params.sizeOfVSQ = 1;
@@ -534,10 +537,7 @@ int main(int argc, char *argv[]) {
     params.sizeOfIOA = 3;
     params.maxSizeOfASDU = 249;
 
-    bool unsignedSVA = false;
-
     cppflags::FlagSet flags;
-    flags.Bool("unsignedSVA", &unsignedSVA, "Display SVA (scaled value) as unsigned uint16 instead of signed int16");
     flags.Int("sizeOfCOT", &params.sizeOfCOT, params.sizeOfCOT, "Size of Cause of Transmission field (1 = no OA, 2 = with OA)");
     flags.Int("originatorAddress", &params.originatorAddress, params.originatorAddress, "Originator address used when sizeOfCOT = 2 (0-255)");
     flags.Int("sizeOfCA", &params.sizeOfCA, params.sizeOfCA, "Size of Common Address field in bytes (1 or 2)");
@@ -578,7 +578,7 @@ int main(int argc, char *argv[]) {
         }
 
         std::cout << std::string(60, '-') << "\n";
-        parseAPDU(bytes, params, errors, unsignedSVA);
+        parseAPDU(bytes, params, errors);
 
         if (!errors.empty()) {
             std::cout << "\n";
