@@ -28,6 +28,8 @@
 
 #include "cppflags/cppflags.h"
 
+static constexpr auto VERSION = "1.0.1";
+
 extern "C" {
 #include "iec60870_common.h"
 #include "cs101_information_objects.h"
@@ -537,7 +539,11 @@ int main(const int argc, char *argv[]) {
     params.sizeOfIOA = 3;
     params.maxSizeOfASDU = 249;
 
+    bool showVersion = false;
+
     cppflags::FlagSet flags;
+    flags.SetPreamble(std::string("iec104_apdu_parser version ") + VERSION);
+    flags.Bool("version", &showVersion, "Print version and exit");
     flags.Int("sizeOfCOT", &params.sizeOfCOT, params.sizeOfCOT, "Size of Cause of Transmission field (1 = no OA, 2 = with OA)");
     flags.Int("originatorAddress", &params.originatorAddress, params.originatorAddress, "Originator address used when sizeOfCOT = 2 (0-255)");
     flags.Int("sizeOfCA", &params.sizeOfCA, params.sizeOfCA, "Size of Common Address field in bytes (1 or 2)");
@@ -550,6 +556,11 @@ int main(const int argc, char *argv[]) {
         std::cerr << "Error: " << e.what() << "\n";
         flags.printUsage(argv[0]);
         return 1;
+    }
+
+    if (showVersion) {
+        std::cout << "iec104_apdu_parser version " << VERSION << "\n";
+        return 0;
     }
 
     std::cout << "IEC 60870-5-104 APDU Parser\n";
