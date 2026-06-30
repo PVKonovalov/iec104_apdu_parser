@@ -564,7 +564,7 @@ int main(const int argc, char *argv[]) {
         if (!std::getline(std::cin, line)) break;
 
         if (line.find_first_not_of(" \t\r\n") == std::string::npos) {
-            std::cout << "Goodbye.\n";
+            std::cout << "\n";
             break;
         }
 

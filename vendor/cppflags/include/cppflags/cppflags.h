@@ -48,6 +48,13 @@ namespace cppflags {
             boolEntries_.push_back({name, description, target});
         }
 
+        // Register a string flag with a default value and description.
+        void String(const std::string &name, std::string *target, const std::string &defaultValue,
+                    const std::string &description) {
+            *target = defaultValue;
+            stringEntries_.push_back({name, description, defaultValue, target});
+        }
+
         // Parse argc/argv, skipping argv[0] (program name).
         // Returns the index of the first non-flag argument, or argc if none.
         int Parse(int argc, const char *const*argv) {
@@ -71,6 +78,18 @@ namespace cppflags {
                                         [&](const BoolEntry &e) { return e.name == name; });
                 if (bit != boolEntries_.end()) {
                     *bit->target = true;
+                    ++i;
+                    continue;
+                }
+
+                // Check string entries
+                auto sit = std::find_if(stringEntries_.begin(), stringEntries_.end(),
+                                        [&](const StringEntry &e) { return e.name == name; });
+                if (sit != stringEntries_.end()) {
+                    if (i + 1 >= argc) {
+                        throw ParseError("flag --" + name + " requires a value");
+                    }
+                    *sit->target = argv[++i];
                     ++i;
                     continue;
                 }
@@ -129,8 +148,20 @@ namespace cppflags {
             bool *target;
         };
 
+        struct StringEntry {
+            std::string name;
+            std::string description;
+            std::string defaultValue;
+            std::string *target;
+        };
+
         void printHelp(const char *prog) const {
             std::cout << "Usage: " << prog << " [flags]\n\nFlags:\n";
+            for (const auto &e: stringEntries_) {
+                std::cout << "  --" << e.name << " <string>"
+                        << "  (default: \"" << e.defaultValue << "\")\n"
+                        << "      " << e.description << "\n";
+            }
             for (const auto &e: intEntries_) {
                 std::cout << "  --" << e.name << " <int>"
                         << "  (default: " << e.defaultValue << ")\n"
@@ -145,5 +176,6 @@ namespace cppflags {
 
         std::vector<IntEntry> intEntries_;
         std::vector<BoolEntry> boolEntries_;
+        std::vector<StringEntry> stringEntries_;
     };
 } // namespace cppflags
