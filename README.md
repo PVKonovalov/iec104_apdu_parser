@@ -50,6 +50,7 @@ cmake --build build
 | `--sizeOfCA` | `2` | Size of Common Address field in bytes (1 or 2) |
 | `--sizeOfIOA` | `3` | Size of Information Object Address field in bytes (1, 2, or 3) |
 | `--maxSizeOfASDU` | `249` | Maximum ASDU size in bytes |
+| `--version` | | Print version and exit |
 | `--help` | | Print usage and exit |
 
 Once started the tool enters an interactive loop. Enter a hex string and press Enter to parse it. An empty line exits.
